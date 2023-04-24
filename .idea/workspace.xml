@@ -4,9 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="11bd2715-833a-48a5-a856-536325c0b68a" name="Changes" comment="initial commit">
-      <change afterPath="$PROJECT_DIR$/src/BDD.java" afterDir="false" />
+    <list default="true" id="11bd2715-833a-48a5-a856-536325c0b68a" name="Changes" comment="WIP (not really working)">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/BDD.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/BDD.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Main.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -55,31 +55,28 @@
       <option name="project" value="LOCAL" />
       <updated>1681248229975</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="WIP (not really working)">
+      <created>1682294072934</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1682294072934</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="initial commit" />
-    <option name="LAST_COMMIT_MESSAGE" value="initial commit" />
+    <MESSAGE value="WIP (not really working)" />
+    <option name="LAST_COMMIT_MESSAGE" value="WIP (not really working)" />
   </component>
   <component name="XDebuggerManager">
-    <breakpoint-manager>
-      <breakpoints>
-        <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/Main.java</url>
-          <line>5</line>
-          <option name="timeStamp" value="7" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="java-method">
-          <url>file://$PROJECT_DIR$/src/BDD.java</url>
-          <line>99</line>
-          <properties class="BDD" method="createBDDNode">
-            <option name="EMULATED" value="true" />
-            <option name="WATCH_EXIT" value="false" />
-          </properties>
-          <option name="timeStamp" value="11" />
-        </line-breakpoint>
-      </breakpoints>
-    </breakpoint-manager>
+    <pin-to-top-manager>
+      <pinned-members>
+        <PinnedItemInfo parentTag="BDD" memberName="orderOfVariables" />
+        <PinnedItemInfo parentTag="BDD" memberName="numOfVariables" />
+        <PinnedItemInfo parentTag="BDD" memberName="size" />
+      </pinned-members>
+    </pin-to-top-manager>
   </component>
 </project>

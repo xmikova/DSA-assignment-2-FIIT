@@ -20,24 +20,33 @@ public class BDD {
     }
 
     static class BDDNode {
+        public static int nodeCount = 0;
+
         private int varIndex;
         private BDDNode lowChild;
         private BDDNode highChild;
         private boolean isTerminal;
+
+        public static int getNodeCount() {
+            return nodeCount;
+        }
+
         private Boolean value;
         private int refCount;
 
 
-        public BDDNode(int varIndex, BDDNode lowChild, BDDNode highChild, boolean isTerminal, Boolean value) {
+        public BDDNode(int varIndex, BDDNode lowChild, BDDNode highChild, boolean isTerminal, Boolean value, int nodeCount) {
             this.varIndex = varIndex;
             this.lowChild = lowChild;
             this.highChild = highChild;
             this.isTerminal = isTerminal;
             this.value = value;
             this.refCount = 0;
+            nodeCount++;
         }
 
         public BDDNode() {
+            nodeCount++;
         }
 
         public BDDNode(Boolean value) {
@@ -47,11 +56,17 @@ public class BDD {
         public BDDNode(boolean isTerminal, Boolean value) {
             this.isTerminal = isTerminal;
             this.value = value;
+            nodeCount++;
         }
     }
 
     private int numOfVariables;
     private String orderOfVariables;
+
+    public void setSize(int size) {
+        this.size = size;
+    }
+
     private int size;
 
     public static BDD create_BDD(String bfunction, String order) {
@@ -91,62 +106,115 @@ public class BDD {
         BDD bdd = new BDD();
         BDDNode root = null;
         BDDNode currentNode = null;
-        bdd.size = 0;
-        root = createBDDNode(modifiedTerms, orderVariableList, root, currentNode, bdd.size);
+        root = createBDDNode(modifiedTerms, orderVariableList, root, currentNode);
         bdd.setRoot(root);
+        bdd.size = BDDNode.getNodeCount();
         return bdd;
     }
 
-    public static BDDNode createBDDNode(List<String> Terms, List<Character> orderedV, BDDNode rootNode, BDDNode parentNode, int size) {
-        if (orderedV.isEmpty()) {
-            // Create terminal nodes
-            if (Terms.isEmpty()) {
-                return new BDDNode(true);
-            } else {
-                return new BDDNode(false);
+    public static BDDNode createBDDNode(List<String> Terms, List<Character> orderedV, BDDNode rootNode, BDDNode parentNode) {
+        if (orderedV.size() == 1) { // check for the last variable in the list
+            char variable = orderedV.get(0);
+            Character lowerV = Character.toLowerCase(variable);
+            CharSequence charSeq = new String(new char[] {variable});
+            CharSequence charSeqL = new String(new char[] {lowerV});
+
+            BDDNode trueNode = new BDDNode(true, null);
+            BDDNode falseNode = new BDDNode(true, null);
+
+            if (Terms.isEmpty()){
+                trueNode.value = false;
+                falseNode.value = false;
             }
+            else if (Terms.size()== 1){
+                for (String term : Terms){
+                if (term.contains(charSeq)){
+                    trueNode.value = true;
+                    falseNode.value = false;
+                }else if (term.contains(charSeqL)) {
+                    trueNode.value = false;
+                    falseNode.value = true;
+                }else if (term.contains("1")){
+                    trueNode.value = true;
+                    falseNode.value = true;
+                }else if (term.contains("0")){
+                    trueNode.value = false;
+                    falseNode.value = false;
+                }
+                }}
+            else {
+                    trueNode.value = true;
+                    falseNode.value = true;
+                }
+
+
+            BDDNode variableNode = new BDDNode();
+            variableNode.varIndex = variable;
+            variableNode.highChild = trueNode;
+            variableNode.lowChild = falseNode;
+            if (parentNode == null) {
+                rootNode = variableNode;
+            } else if (parentNode.highChild == null) {
+                parentNode.highChild = variableNode;
+            } else {
+                parentNode.lowChild = variableNode;
+            }
+            return rootNode;
         }
 
+        // continue with the recursive function if not the last variable
         Character variable = orderedV.get(0);
         List<String> trueTerms = new ArrayList<>();
         List<String> falseTerms = new ArrayList<>();
-        List<String> bothTerms = new ArrayList<>();
-
         for (String term : Terms) {
             if (term.indexOf(variable) == -1) {
                 if (term.indexOf(Character.toLowerCase(variable)) != -1) {
-                    falseTerms.add(term);
+                    String newTerm;
+                    newTerm = term.replace(Character.toLowerCase(variable), ' ');
+                    String cleanedTerm = "";
+                    for (int i = 0; i < newTerm.length(); i++) {
+                        char c = newTerm.charAt(i);
+                        if (Character.isLetter(c)) {
+                            cleanedTerm += c;
+                        }
+                    }
+                    if (cleanedTerm.isEmpty()){
+                        cleanedTerm = "0";
+                    }
+                    falseTerms.add(cleanedTerm);
                 } else {
-                    bothTerms.add(term);
-                }
+                    trueTerms.add(term);
+                    falseTerms.add(term);
+            }
             } else {
-                trueTerms.add(term);
+                String newTerm;
+                newTerm = term.replace(variable, ' ');
+                String cleanedTerm = "";
+                for (int i = 0; i < newTerm.length(); i++) {
+                    char c = newTerm.charAt(i);
+                    if (Character.isLetter(c)) {
+                        cleanedTerm += c;
+                    }
+                }
+                if (cleanedTerm.isEmpty()){
+                    cleanedTerm = "1";
+                }
+                trueTerms.add(cleanedTerm);
             }
         }
 
+        removeDuplicates(trueTerms);
+        removeDuplicates(falseTerms);
         BDDNode trueNode = null;
         BDDNode falseNode = null;
 
-        if (!trueTerms.isEmpty()) {
-            trueNode = createBDDNode(trueTerms, orderedV.subList(1, orderedV.size()), rootNode, parentNode, size + 1);
-        }
-        if (!falseTerms.isEmpty()) {
-            falseNode = createBDDNode(falseTerms, orderedV.subList(1, orderedV.size()), rootNode, parentNode, size + 1);
-        }
+        trueNode = createBDDNode(trueTerms, orderedV.subList(1, orderedV.size()), rootNode, parentNode);
+        falseNode = createBDDNode(falseTerms, orderedV.subList(1, orderedV.size()), rootNode, parentNode);
 
         BDDNode variableNode = new BDDNode();
         variableNode.varIndex = variable;
-
-        if (trueNode == null) {
-            variableNode.highChild = falseNode;
-            variableNode.lowChild = falseNode;
-        } else if (falseNode == null) {
-            variableNode.highChild = trueNode;
-            variableNode.lowChild = trueNode;
-        } else {
-            variableNode.highChild = trueNode;
-            variableNode.lowChild = falseNode;
-        }
+        variableNode.highChild = trueNode;
+        variableNode.lowChild = falseNode;
 
         if (parentNode == null) {
             rootNode = variableNode;
@@ -155,11 +223,21 @@ public class BDD {
         } else {
             parentNode.lowChild = variableNode;
         }
-
         return rootNode;
     }
-}
 
+    public static List<String> removeDuplicates(List<String> terms) {
+        Set<String> uniqueTerms = new HashSet<>();
+        List<String> nonDuplicateTerms = new ArrayList<>();
+        for (String term : terms) {
+            if (!uniqueTerms.contains(term)) {
+                uniqueTerms.add(term);
+                nonDuplicateTerms.add(term);
+            }
+        }
+        return nonDuplicateTerms;
+    }
+}
 
 
 

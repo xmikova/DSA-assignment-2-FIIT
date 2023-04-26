@@ -65,17 +65,42 @@
     <option name="localTasksCounter" value="3" />
     <servers />
   </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="initial commit" />
     <MESSAGE value="WIP (not really working)" />
     <option name="LAST_COMMIT_MESSAGE" value="WIP (not really working)" />
   </component>
   <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/Main.java</url>
+          <line>7</line>
+          <option name="timeStamp" value="45" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/BDD.java</url>
+          <line>95</line>
+          <option name="timeStamp" value="48" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
     <pin-to-top-manager>
       <pinned-members>
         <PinnedItemInfo parentTag="BDD" memberName="orderOfVariables" />
         <PinnedItemInfo parentTag="BDD" memberName="numOfVariables" />
-        <PinnedItemInfo parentTag="BDD" memberName="size" />
+        <PinnedItemInfo parentTag="BDD$BDDNode" memberName="lowChild" />
       </pinned-members>
     </pin-to-top-manager>
   </component>

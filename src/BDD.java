@@ -2,14 +2,11 @@ import java.util.*;
 
 public class BDD {
 
+    public static int nodeCount = 2;
     public BDD() {
     }
 
     private BDDNode root;
-
-    public BDD(BDDNode root) {
-        this.root = root;
-    }
 
     public BDDNode getRoot() {
         return root;
@@ -20,45 +17,32 @@ public class BDD {
     }
 
     static class BDDNode {
-        public static int nodeCount = 0;
-
+        public BDDNode parent;
+        List<String> terms;
         private int varIndex;
         private BDDNode lowChild;
         private BDDNode highChild;
         private boolean isTerminal;
 
-        public static int getNodeCount() {
-            return nodeCount;
-        }
-
         private Boolean value;
-        private int refCount;
 
-
-        public BDDNode(int varIndex, BDDNode lowChild, BDDNode highChild, boolean isTerminal, Boolean value, int nodeCount) {
-            this.varIndex = varIndex;
-            this.lowChild = lowChild;
-            this.highChild = highChild;
-            this.isTerminal = isTerminal;
-            this.value = value;
-            this.refCount = 0;
-            nodeCount++;
+        @Override
+        public String toString() {
+            String lowChildStr = (lowChild != null) ? lowChild.toString() : "null";
+            String highChildStr = (highChild != null) ? highChild.toString() : "null";
+            return "(" + varIndex + "," + lowChildStr + "," + highChildStr + ")";
         }
+
 
         public BDDNode() {
-            nodeCount++;
-        }
-
-        public BDDNode(Boolean value) {
-            this.value = value;
         }
 
         public BDDNode(boolean isTerminal, Boolean value) {
             this.isTerminal = isTerminal;
             this.value = value;
-            nodeCount++;
         }
     }
+
 
     private int numOfVariables;
     private String orderOfVariables;
@@ -103,55 +87,109 @@ public class BDD {
             modifiedTerms.add(sb.toString());
         }
 
+        BDDNode trueLeaf = new BDDNode(true, true);
+        BDDNode falseLeaf = new BDDNode(true, false);
         BDD bdd = new BDD();
         BDDNode root = null;
         BDDNode currentNode = null;
-        root = createBDDNode(modifiedTerms, orderVariableList, root, currentNode);
+        HashMap<String, BDDNode> uniqueTable = new HashMap<String, BDDNode>();
+        root = createBDDNode(modifiedTerms, orderVariableList, root, currentNode, trueLeaf, falseLeaf, uniqueTable);
         bdd.setRoot(root);
-        bdd.size = BDDNode.getNodeCount();
+        bdd.setSize(nodeCount);
+        System.out.println(bdd.size);
         return bdd;
     }
 
-    public static BDDNode createBDDNode(List<String> Terms, List<Character> orderedV, BDDNode rootNode, BDDNode parentNode) {
+    public static BDDNode createBDDNode(List<String> Terms, List<Character> orderedV, BDDNode rootNode, BDDNode parentNode, BDDNode trueLeaf, BDDNode falseLeaf, HashMap<String, BDDNode> uniqueTable) {
         if (orderedV.size() == 1) { // check for the last variable in the list
             char variable = orderedV.get(0);
             Character lowerV = Character.toLowerCase(variable);
-            CharSequence charSeq = new String(new char[] {variable});
-            CharSequence charSeqL = new String(new char[] {lowerV});
+            CharSequence charSeq = new String(new char[]{variable});
+            CharSequence charSeqL = new String(new char[]{lowerV});
 
-            BDDNode trueNode = new BDDNode(true, null);
-            BDDNode falseNode = new BDDNode(true, null);
+            //Reduction: we only use two nodes representing leaf true and false nodes and set pointer of last
+            //variables kids to them instead of creating two leaves for each last variable node
 
-            if (Terms.isEmpty()){
-                trueNode.value = false;
-                falseNode.value = false;
+            String key = concatTerms(Terms) + ":" + trueLeaf.toString() + ":" + falseLeaf.toString();
+
+            // Check if a node with the same key already exists in the unique table
+            BDDNode existingNode = uniqueTable.get(key);
+            if (existingNode != null) {
+                return existingNode;
             }
-            else if (Terms.size()== 1){
-                for (String term : Terms){
-                if (term.contains(charSeq)){
-                    trueNode.value = true;
-                    falseNode.value = false;
-                }else if (term.contains(charSeqL)) {
-                    trueNode.value = false;
-                    falseNode.value = true;
-                }else if (term.contains("1")){
-                    trueNode.value = true;
-                    falseNode.value = true;
-                }else if (term.contains("0")){
-                    trueNode.value = false;
-                    falseNode.value = false;
-                }
-                }}
-            else {
-                    trueNode.value = true;
-                    falseNode.value = true;
-                }
-
 
             BDDNode variableNode = new BDDNode();
+            nodeCount++;
             variableNode.varIndex = variable;
-            variableNode.highChild = trueNode;
-            variableNode.lowChild = falseNode;
+            variableNode.terms = Terms;
+
+
+            if (Terms.isEmpty()) {
+                variableNode.lowChild = falseLeaf;
+                variableNode.highChild = falseLeaf;
+            } else if (Terms.size() == 1) {
+                for (String term : Terms) {
+                    if (term.contains(charSeq)) {
+                        variableNode.lowChild = falseLeaf;
+                        variableNode.highChild = trueLeaf;
+                    } else if (term.contains(charSeqL)) {
+                        variableNode.lowChild = trueLeaf;
+                        variableNode.highChild = falseLeaf;
+                    } else if (term.contains("1")) {
+                        variableNode.lowChild = trueLeaf;
+                        variableNode.highChild = trueLeaf;
+                    } else if (term.contains("0")) {
+                        variableNode.lowChild = falseLeaf;
+                        variableNode.highChild = falseLeaf;
+                    }
+                }
+            } else {
+                for (int i = 0; i < Terms.size(); i++) {
+                    if (i == (Terms.size() - 1)) {
+                        break;
+                    }
+                    if (Terms.get(i).contains(charSeq)) {
+                        if (Terms.get(i + 1).contains(charSeqL)) {
+                            variableNode.lowChild = trueLeaf;
+                            variableNode.highChild = trueLeaf;
+                        } else if (Terms.get(i + 1).contains("1")) {
+                            variableNode.lowChild = trueLeaf;
+                            variableNode.highChild = trueLeaf;
+                        } else if (Terms.get(i + 1).contains("0")) {
+                            variableNode.lowChild = falseLeaf;
+                            variableNode.highChild = trueLeaf;
+                        }
+                    } else if (Terms.get(i).contains(charSeqL)) {
+                        if (Terms.get(i + 1).contains(charSeq)) {
+                            variableNode.lowChild = trueLeaf;
+                            variableNode.highChild = trueLeaf;
+                        } else if (Terms.get(i + 1).contains("1")) {
+                            variableNode.lowChild = trueLeaf;
+                            variableNode.highChild = trueLeaf;
+                        } else if (Terms.get(i + 1).contains("0")) {
+                            variableNode.lowChild = trueLeaf;
+                            variableNode.highChild = falseLeaf;
+                        }
+                    } else if (Terms.get(i).contains("1")) {
+                        if (Terms.get(i + 1).contains(charSeq)) {
+                            variableNode.lowChild = trueLeaf;
+                            variableNode.highChild = trueLeaf;
+                        } else if (Terms.get(i + 1).contains(charSeqL)) {
+                            variableNode.lowChild = trueLeaf;
+                            variableNode.highChild = trueLeaf;
+                        }
+                    } else if (Terms.get(i).contains("0")) {
+                        if (Terms.get(i + 1).contains(charSeq)) {
+                            variableNode.lowChild = falseLeaf;
+                            variableNode.highChild = trueLeaf;
+                        } else if (Terms.get(i + 1).contains(charSeqL)) {
+                            variableNode.lowChild = trueLeaf;
+                            variableNode.highChild = falseLeaf;
+                        }
+                    }
+                }
+            }
+
             if (parentNode == null) {
                 rootNode = variableNode;
             } else if (parentNode.highChild == null) {
@@ -159,8 +197,12 @@ public class BDD {
             } else {
                 parentNode.lowChild = variableNode;
             }
+
+            uniqueTable.put(key, variableNode);
             return rootNode;
+
         }
+
 
         // continue with the recursive function if not the last variable
         Character variable = orderedV.get(0);
@@ -178,14 +220,26 @@ public class BDD {
                             cleanedTerm += c;
                         }
                     }
-                    if (cleanedTerm.isEmpty()){
+                    if (cleanedTerm.isEmpty()) {
                         cleanedTerm = "0";
                     }
-                    falseTerms.add(cleanedTerm);
+                    falseTerms.add(Asociativity(Indempotent(cleanedTerm)));
                 } else {
-                    trueTerms.add(term);
-                    falseTerms.add(term);
-            }
+                    String newTerm;
+                    newTerm = term.replace(variable, ' ');
+                    String cleanedTerm = "";
+                    for (int i = 0; i < newTerm.length(); i++) {
+                        char c = newTerm.charAt(i);
+                        if (Character.isLetter(c)) {
+                            cleanedTerm += c;
+                        }
+                    }
+                    if (cleanedTerm.isEmpty()) {
+                        cleanedTerm = "1";
+                    }
+                    trueTerms.add(Asociativity(Indempotent(cleanedTerm)));
+                    falseTerms.add(Asociativity(Indempotent(cleanedTerm)));
+                }
             } else {
                 String newTerm;
                 newTerm = term.replace(variable, ' ');
@@ -196,34 +250,51 @@ public class BDD {
                         cleanedTerm += c;
                     }
                 }
-                if (cleanedTerm.isEmpty()){
+                if (cleanedTerm.isEmpty()) {
                     cleanedTerm = "1";
                 }
-                trueTerms.add(cleanedTerm);
+                trueTerms.add(Asociativity(Indempotent(cleanedTerm)));
             }
         }
 
-        removeDuplicates(trueTerms);
-        removeDuplicates(falseTerms);
-        BDDNode trueNode = null;
-        BDDNode falseNode = null;
+        trueTerms = Absorption(InverseLaw(Annulment(Identity(removeDuplicates(trueTerms)))));
+        falseTerms = Absorption(InverseLaw(Annulment(Identity(removeDuplicates(falseTerms)))));
+        BDDNode trueNode;
+        BDDNode falseNode;
 
-        trueNode = createBDDNode(trueTerms, orderedV.subList(1, orderedV.size()), rootNode, parentNode);
-        falseNode = createBDDNode(falseTerms, orderedV.subList(1, orderedV.size()), rootNode, parentNode);
+        trueNode = createBDDNode(trueTerms, orderedV.subList(1, orderedV.size()), rootNode, parentNode, trueLeaf, falseLeaf, uniqueTable);
+        falseNode = createBDDNode(falseTerms, orderedV.subList(1, orderedV.size()), rootNode, parentNode, trueLeaf, falseLeaf, uniqueTable);
 
-        BDDNode variableNode = new BDDNode();
-        variableNode.varIndex = variable;
-        variableNode.highChild = trueNode;
-        variableNode.lowChild = falseNode;
 
-        if (parentNode == null) {
-            rootNode = variableNode;
-        } else if (parentNode.highChild == null) {
-            parentNode.highChild = variableNode;
+        String key = concatTerms(Terms) + ":" + trueNode.toString() + ":" + falseNode.toString();
+        BDDNode existingNode = uniqueTable.get(key);
+
+        if (existingNode != null) {
+            return existingNode;
         } else {
-            parentNode.lowChild = variableNode;
+            BDDNode variableNode = new BDDNode();
+            nodeCount++;
+            variableNode.varIndex = variable;
+            variableNode.highChild = trueNode;
+            trueNode.parent = variableNode;
+            variableNode.lowChild = falseNode;
+            falseNode.parent = variableNode;
+            variableNode.terms = Terms;
+            uniqueTable.put(key, variableNode);
+            reduction_typeS(variableNode, uniqueTable);
+
+
+            if (parentNode == null) {
+                rootNode = variableNode;
+            } else if (parentNode.highChild == null) {
+                parentNode.highChild = variableNode;
+            } else {
+                parentNode.lowChild = variableNode;
+
+            }
+
+            return rootNode;
         }
-        return rootNode;
     }
 
     public static List<String> removeDuplicates(List<String> terms) {
@@ -237,8 +308,124 @@ public class BDD {
         }
         return nonDuplicateTerms;
     }
+
+    public static String Indempotent(String term){
+        String nonDuplicateTerm = "";
+        Set<Character> uniqueChars = new HashSet<>();
+        for (int i = 0; i < term.length(); i++) {
+            char c = term.charAt(i);
+            if (!uniqueChars.contains(c)) {
+                uniqueChars.add(c);
+                nonDuplicateTerm += c;
+            }
+        }
+        return nonDuplicateTerm;
+    }
+
+    public static String Asociativity(String term){
+        char[] charArray = term.toCharArray();
+        Arrays.sort(charArray);
+        String sortedStr = String.valueOf(charArray);
+        return sortedStr;
+    }
+
+    public static List<String> Absorption(List<String> terms) {
+        List<String> result = new ArrayList<>(terms);
+
+        for (int i = 0; i < terms.size(); i++) {
+            String term1 = terms.get(i);
+            for (int j = i + 1; j < terms.size(); j++) {
+                String term2 = terms.get(j);
+                if (term1.length() < term2.length() && term2.startsWith(term1)) {
+                    result.remove(term2);
+                } else if (term2.length() < term1.length() && term1.startsWith(term2)) {
+                    result.remove(term1);
+                    break;
+                }
+            }
+        }
+
+        return result;
+    }
+
+    public static List<String> Annulment(List<String> terms) {
+        List<String> simplifiedTerms = new ArrayList<>();
+        if (terms.contains("1")) {
+            simplifiedTerms.add("1");
+        } else {
+            simplifiedTerms.addAll(terms);
+        }
+        return simplifiedTerms;
+    }
+
+    public static List<String> Identity(List<String> terms) {
+        if (terms.contains("0")) {
+            terms.remove("0");
+        }
+        return terms;
+    }
+
+    public static List<String> InverseLaw(List<String> terms) {
+        List<String> result = new ArrayList<>();
+        for (int i = 0; i < terms.size(); i++) {
+            String term = terms.get(i);
+            boolean inverseFound = false;
+            for (int j = i + 1; j < terms.size(); j++) {
+                String otherTerm = terms.get(j);
+                if (otherTerm.length() == term.length() &&
+                        areInverseTerms(term, otherTerm)) {
+                    inverseFound = true;
+                    terms.remove(term);
+                    terms.remove(otherTerm);
+                    terms.add("1");
+                    break;
+                }
+            }
+            if (!inverseFound) {
+                result.add(term);
+            }
+        }
+        return result;
+    }
+
+    private static boolean areInverseTerms(String term1, String term2) {
+        for (int i = 0; i < term1.length(); i++) {
+            char c1 = term1.charAt(i);
+            char c2 = term2.charAt(i);
+            if (Character.isLowerCase(c1) && Character.isUpperCase(c2) && Character.toLowerCase(c1) == c2 ||
+                    Character.isLowerCase(c2) && Character.isUpperCase(c1) && Character.toLowerCase(c2) == c1) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static String concatTerms(List<String> terms) {
+        Collections.sort(terms);
+        return String.join("", terms);
+    }
+
+    private static void reduction_typeS(BDDNode node, HashMap<String, BDDNode> uniqueTable) {
+
+        // check if both child nodes point to the same node
+        if (node.lowChild.lowChild == node.lowChild.highChild) {
+            // set parent node to child node
+            if (node.lowChild.parent != null) {
+                String key = concatTerms(node.lowChild.terms) + ":" + node.lowChild.highChild.toString() + ":" + node.lowChild.lowChild.toString();
+                node.lowChild = node.lowChild.lowChild;
+                uniqueTable.remove(key);
+                nodeCount--;
+            }
+        } else if (node.highChild.lowChild == node.highChild.highChild) {
+            // set parent node to child node
+            if (node.highChild.parent != null) {
+                String key = concatTerms(node.highChild.terms) + ":" + node.highChild.highChild.toString() + ":" + node.highChild.lowChild.toString();
+                node.lowChild.parent = node.parent;
+                node.highChild = node.highChild.highChild;
+                uniqueTable.remove(key);
+                nodeCount--;
+            }
+        }
+    }
 }
-
-
-
 

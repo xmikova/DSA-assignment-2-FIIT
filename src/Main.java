@@ -1,14 +1,98 @@
+import java.util.ArrayList;
+import java.util.List;
+
 public class Main {
-    public static void main(String[] args) {
-        String function = "AB+AC+AD+AE+BCD!E";
-        String order = "ABCDE";
-        //String function = "A!B!C+ABC+!AB!C+!A!BC";
-        //String order = "ABC";
-        BDD bdd = new BDD();
-        bdd = BDD.create_BDD(function,order);
-        // do something with the created BDD object
+    public static void main(String[] args){
+
+    }
+
+    public static void testTheBDD(int numberOfVars){
+      String bfunction = BDD.generateRandomFunction(numberOfVars);
+      String order = BDD.generateRandomOrder(bfunction);
+      BDD bdd = new BDD();
+      BDD bddBestOrder = new BDD();
+
+      long start = System.currentTimeMillis();
+      bdd = BDD.BDD_create(bfunction,order);
+      long end = System.currentTimeMillis();
+
+      long total = end - start;
+      bddBestOrder = BDD.BDD_create_with_best_order(bfunction);
+      int fullBDDSize = (int)Math.pow(2,numberOfVars +1)-1;
+      int bddSize = bdd.getSize();
+      int bddBestOrderSize = bddBestOrder.getSize();
+      double reductionRateBDD = ((double)(fullBDDSize - bddSize)/fullBDDSize) * 100.0;
+      double reductionRateBDDBestOrder = ((double)(fullBDDSize - bddBestOrderSize)/fullBDDSize) * 100.0;
+      double BDDtoBDDbestorderRatio = (double)bddBestOrderSize / bddSize * 100.0;
 
 
 
+      System.out.println("Function: " + bfunction);
+      System.out.println();
+      System.out.println("Time of creation of BDD in milliseconds: " + total);
+      System.out.println("Number of nodes of full BDD: " + fullBDDSize);
+      System.out.println("Number of nodes of reduced BDD with random order: " + bdd.getSize());
+      System.out.println("Number of nodes of reduced BDD with best order: " + bddBestOrder.getSize());
+      System.out.println("Reduction rate of BDD with random order: " + String.format("%.2f", reductionRateBDD) + "%");
+      System.out.println("Reduction rate of BDD with best order: " +String.format("%.2f", reductionRateBDDBestOrder) + "%");
+      System.out.println("Random order reduced BDD to best order reduced BDD size ratio: " + String.format("%.2f", BDDtoBDDbestorderRatio) + "%");
+      System.out.println();
+      System.out.println("Random order BDD success rate:");
+      BDD.testCorrectnessOfAllPossibleOutputs(bdd);
+      System.out.println();
+      System.out.println("Best order BDD success rate:");
+      BDD.testCorrectnessOfAllPossibleOutputs(bddBestOrder);
+      System.out.println();
+
+    }
+
+    public static void testTheBDD100Times(int numberOfVars){
+        long start = System.currentTimeMillis();
+        for (int i = 0; i < 100; i++){
+            testTheBDD(numberOfVars);
+        }
+        long end = System.currentTimeMillis();
+        long total = end - start;
+
+        System.out.println("Time in milliseconds to create 100 random BDDs with " + numberOfVars + " variables: " + total);
+    }
+
+    public static void timeComplexityTest(){
+        List<Integer> numsOfVars = new ArrayList<>();
+        for (int i = 13; i <= 20; i++) {
+            numsOfVars.add(i);
+        }
+
+        for (int i = 0; i < numsOfVars.size(); i++){
+            long start = System.currentTimeMillis();
+            for (int j = 0; j < 100; j++){
+                String bfunction = BDD.generateRandomFunction(numsOfVars.get(i));
+                String order = BDD.generateRandomOrder(bfunction);
+                BDD bdd = BDD.BDD_create(bfunction,order);
+            }
+            long end = System.currentTimeMillis();
+            long total = end - start;
+
+            System.out.println("Time in milliseconds to create 100 random BDDs with " + numsOfVars.get(i) + " variables: " + total);
+        }
+    }
+
+    public static void timeComplexityTestBestBDD(){
+        List<Integer> numsOfVars = new ArrayList<>();
+        for (int i = 13; i <= 20; i++) {
+            numsOfVars.add(i);
+        }
+
+        for (int i = 0; i < numsOfVars.size(); i++){
+            long start = System.currentTimeMillis();
+            for (int j = 0; j < 100; j++){
+                String bfunction = BDD.generateRandomFunction(numsOfVars.get(i));
+                BDD bdd = BDD.BDD_create_with_best_order(bfunction);
+            }
+            long end = System.currentTimeMillis();
+            long total = end - start;
+
+            System.out.println("Time in milliseconds to create 100 random BDDs with " + numsOfVars.get(i) + " variables: " + total);
+        }
     }
 }

@@ -4,7 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="11bd2715-833a-48a5-a856-536325c0b68a" name="Changes" comment="WIP (not really working)">
+    <list default="true" id="11bd2715-833a-48a5-a856-536325c0b68a" name="Changes" comment="BDD_create with reduction rules and boolean algebra laws (WORKING, not fully tested tho)">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/BDD.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/BDD.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Main.java" afterDir="false" />
@@ -36,9 +36,24 @@
   <component name="PropertiesComponent">{
   &quot;keyToString&quot;: {
     &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/petra/eclipse-workspace/oop-2023-stv-13-a-dakic-xmikova/Project&quot;
   }
 }</component>
+  <component name="RunManager">
+    <configuration name="Main" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="Main" />
+      <module name="DSA2" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Application.Main" />
+      </list>
+    </recent_temporary>
+  </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
@@ -62,7 +77,14 @@
       <option name="project" value="LOCAL" />
       <updated>1682294072934</updated>
     </task>
-    <option name="localTasksCounter" value="3" />
+    <task id="LOCAL-00003" summary="BDD_create with reduction rules and boolean algebra laws (WORKING, not fully tested tho)">
+      <created>1682468159331</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1682468159331</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -79,29 +101,41 @@
   <component name="VcsManagerConfiguration">
     <MESSAGE value="initial commit" />
     <MESSAGE value="WIP (not really working)" />
-    <option name="LAST_COMMIT_MESSAGE" value="WIP (not really working)" />
+    <MESSAGE value="BDD_create with reduction rules and boolean algebra laws (WORKING, not fully tested tho)" />
+    <option name="LAST_COMMIT_MESSAGE" value="BDD_create with reduction rules and boolean algebra laws (WORKING, not fully tested tho)" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
       <breakpoints>
-        <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/Main.java</url>
-          <line>7</line>
-          <option name="timeStamp" value="45" />
+        <breakpoint enabled="true" type="java-exception">
+          <properties class="java.lang.NullPointerException" package="java.lang" />
+          <option name="timeStamp" value="10" />
+        </breakpoint>
+        <line-breakpoint enabled="true" type="java-method">
+          <url>file://$PROJECT_DIR$/src/BDD.java</url>
+          <line>119</line>
+          <properties class="BDD" method="BDD_create_with_best_order">
+            <option name="EMULATED" value="true" />
+            <option name="WATCH_EXIT" value="false" />
+          </properties>
+          <option name="timeStamp" value="19" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/BDD.java</url>
-          <line>95</line>
-          <option name="timeStamp" value="48" />
+          <line>135</line>
+          <option name="timeStamp" value="18" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
     <pin-to-top-manager>
       <pinned-members>
-        <PinnedItemInfo parentTag="BDD" memberName="orderOfVariables" />
-        <PinnedItemInfo parentTag="BDD" memberName="numOfVariables" />
-        <PinnedItemInfo parentTag="BDD$BDDNode" memberName="lowChild" />
+        <PinnedItemInfo parentTag="BDD" memberName="root" />
+        <PinnedItemInfo parentTag="BDD$BDDNode" memberName="varIndex" />
+        <PinnedItemInfo parentTag="BDD$BDDNode" memberName="terms" />
       </pinned-members>
     </pin-to-top-manager>
+  </component>
+  <component name="com.intellij.coverage.CoverageDataManagerImpl">
+    <SUITE FILE_PATH="coverage/DSA2$Main.ic" NAME="Main Coverage Results" MODIFIED="1682944271152" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="idea" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" />
   </component>
 </project>

@@ -44,8 +44,15 @@ public class BDD {
             return value;
         }
 
+        public BDDNode() {
+        }
+
         @Override
         public String toString() {
+            if (this == null){
+                return null;
+            }
+
             String lowChildStr;
             if (this.lowChild == null) {
                 lowChildStr = "null";
@@ -59,9 +66,6 @@ public class BDD {
                 highChildStr = highChild.toString();
             }
             return "(" + varIndex + "," + lowChildStr + "," + highChildStr + ")";
-        }
-
-        public BDDNode() {
         }
 
         public BDDNode(boolean isTerminal, Boolean value) {
@@ -109,13 +113,14 @@ public class BDD {
         bdd.numOfVariables = variables.size();
         bdd.bfunction = bfunction;
         HashMap<String, BDDNode> uniqueTable = new HashMap<String, BDDNode>();
-        root = createBDD_helper(modifiedTerms, orderVariableList, root, currentNode, trueLeaf, falseLeaf, uniqueTable);
+        root = createBDD_helper(modifiedTerms, orderVariableList, orderVariableList, root, currentNode, trueLeaf, falseLeaf, uniqueTable);
         bdd.setRoot(root);
         Set<String> visited = new HashSet<>();
-        int uniqueNodes = countUniqueNodes(root, visited);
-        bdd.size = uniqueNodes;
+        int uniqueNodes = countUniqueNodes(bdd.root, visited);
+        bdd.size = uniqueNodes + 2;
         return bdd;
     }
+
 
     public static BDD BDD_create_with_best_order(String bfunction) {
         Set<Character> variables;
@@ -141,29 +146,31 @@ public class BDD {
     }
 
     public static char BDD_use(BDD bdd, String input_values){
+        if (input_values.length() != bdd.numOfVariables || !input_values.matches("[01]+")){
+            return 'E'; //error
+        }else{
         boolean result = evaluateBDD(bdd.getRoot(),bdd.orderOfVariables,input_values);
         if (result){
             return '1';
         }else if (!result){
             return '0';
         }
-        return 'E'; //error
+        }
+        return 'E';
     }
 
 
     //Helper methods:
-    public static BDDNode createBDD_helper(List<String> Terms, List<Character> orderedV, BDDNode rootNode, BDDNode parentNode, BDDNode trueLeaf, BDDNode falseLeaf, HashMap<String, BDDNode> uniqueTable) {
+    public static BDDNode createBDD_helper(List<String> Terms, List<Character> orderedV, List<Character> orderedVstatic, BDDNode rootNode, BDDNode parentNode, BDDNode trueLeaf, BDDNode falseLeaf, HashMap<String, BDDNode> uniqueTable) {
         if (orderedV.size() == 1) { // check for the last variable in the list
             char variable = orderedV.get(0);
             Character lowerV = Character.toLowerCase(variable);
             CharSequence charSeq = new String(new char[]{variable});
             CharSequence charSeqL = new String(new char[]{lowerV});
 
-            //Reduction: we only use two nodes representing leaf true and false nodes and set pointer of last
-            //variables kids to them instead of creating two leaves for each last variable node
 
             //String key = "terms:" + concatTerms(Terms) + ":var:" + variable + ":" + trueLeaf.toString() + ":" + falseLeaf.toString();
-            String key = "terms:" + concatTerms(Terms) + ":" + trueLeaf + ":" + falseLeaf;
+            String key = "terms:" + concatTerms(Terms) + ":" + trueLeaf.toString() + ":" + falseLeaf.toString();
 
 
             // Check if a node with the same key already exists in the unique table
@@ -261,6 +268,7 @@ public class BDD {
         Character variable = orderedV.get(0);
         List<String> trueTerms = new ArrayList<>();
         List<String> falseTerms = new ArrayList<>();
+
         for (String term : Terms) {
             if (term.indexOf(variable) == -1) {
                 if (term.indexOf(Character.toLowerCase(variable)) != -1) {
@@ -276,7 +284,7 @@ public class BDD {
                     if (cleanedTerm.isEmpty()) {
                         cleanedTerm = "1";
                     }
-                    falseTerms.add(Asociativity(Indempotent(cleanedTerm)));
+                    falseTerms.add(Associativity(Indempotent(cleanedTerm)));
                     //falseTerms.add(cleanedTerm);
 
                 } else {
@@ -292,8 +300,8 @@ public class BDD {
                     if (cleanedTerm.isEmpty()) {
                         cleanedTerm = "1";
                     }
-                    trueTerms.add(Asociativity(Indempotent(cleanedTerm)));
-                    falseTerms.add(Asociativity(Indempotent(cleanedTerm)));
+                    trueTerms.add(Associativity(Indempotent(cleanedTerm)));
+                    falseTerms.add(Associativity(Indempotent(cleanedTerm)));
                     //trueTerms.add(cleanedTerm);
                     //falseTerms.add(cleanedTerm);
 
@@ -312,7 +320,7 @@ public class BDD {
                 if (cleanedTerm.isEmpty()) {
                     cleanedTerm = "1";
                 }
-                trueTerms.add(Asociativity(Indempotent(cleanedTerm)));
+                trueTerms.add(Associativity(Indempotent(cleanedTerm)));
                 //trueTerms.add(cleanedTerm);
 
             }
@@ -325,16 +333,14 @@ public class BDD {
         BDDNode trueNode;
         BDDNode falseNode;
 
-        trueNode = createBDD_helper(trueTerms, orderedV.subList(1, orderedV.size()), rootNode, parentNode, trueLeaf, falseLeaf, uniqueTable);
-        falseNode = createBDD_helper(falseTerms, orderedV.subList(1, orderedV.size()), rootNode, parentNode, trueLeaf, falseLeaf, uniqueTable);
+        trueNode = createBDD_helper(trueTerms, orderedV.subList(1, orderedV.size()),orderedVstatic, rootNode, parentNode, trueLeaf, falseLeaf, uniqueTable);
+        falseNode = createBDD_helper(falseTerms, orderedV.subList(1, orderedV.size()), orderedVstatic, rootNode, parentNode, trueLeaf, falseLeaf, uniqueTable);
 
 
         //String key = "terms:" + concatTerms(Terms) + ":var:" + variable + ":" + trueNode.toString() + ":" + falseNode.toString();
-        String key = "terms:" + concatTerms(Terms) + ":" + trueNode + ":" + falseNode;
+        String key = "terms:" + concatTerms(Terms) + ":" + trueNode.toString() + ":" + falseNode.toString();
 
-        //BDDNode existingNode = uniqueTable.get(key);
-        BDDNode existingNode = null;
-
+        BDDNode existingNode = uniqueTable.get(key);
 
         if (existingNode != null) {
             return existingNode;
@@ -357,6 +363,19 @@ public class BDD {
             } else {
                 parentNode.lowChild = variableNode;
 
+            }
+            if (rootNode.varIndex == orderedVstatic.get(0) && rootNode.lowChild.lowChild != null && rootNode.lowChild.highChild != null &&  rootNode.highChild.lowChild != null && rootNode.highChild.highChild != null){
+            String rootLowchildkey = "terms:" + concatTerms(rootNode.lowChild.terms) + ":" + rootNode.lowChild.lowChild.toString() + ":" + rootNode.lowChild.highChild.toString();
+            String rootHighchildkey = "terms:" + concatTerms(rootNode.highChild.terms) + ":" + rootNode.highChild.lowChild.toString() + ":" + rootNode.highChild.highChild.toString();
+                if (rootLowchildkey.equals(rootHighchildkey)) {
+                    // set parent node to child node
+                    if (rootNode.lowChild.parent != null ) {
+                        rootNode.lowChild.parent = null;
+                        rootNode.lowChild.terms.addAll(rootNode.terms);
+                        rootNode = rootNode.lowChild;
+                        return rootNode;
+                    }
+                }
             }
 
             return rootNode;
@@ -388,7 +407,7 @@ public class BDD {
         return nonDuplicateTerm;
     }
 
-    public static String Asociativity(String term){
+    public static String Associativity(String term){
         char[] charArray = term.toCharArray();
         Arrays.sort(charArray);
         String sortedStr = String.valueOf(charArray);
@@ -443,7 +462,7 @@ public class BDD {
                     inverseFound = true;
                     terms.remove(term);
                     terms.remove(otherTerm);
-                    terms.add("1");
+                    result.add("1");
                     break;
                 }
             }
@@ -474,9 +493,12 @@ public class BDD {
 
 
     private static String concatTerms(List<String> terms) {
+        if (terms != null){
         Collections.sort(terms);
-        return String.join("|", terms);
+        return String.join("|", terms);}
+        return null;
     }
+
     public static Set<Character> retrieveVariablesFromBfunction(String bfunction){
         Set<Character> variables = new HashSet<>();
         for (int i = 0; i < bfunction.length(); i++) {
@@ -494,7 +516,7 @@ public class BDD {
         }
 
         if (root.isTerminal) {
-            return 1;
+            return 0;
         }
 
         String hash = "terms:" + concatTerms(root.terms) + ":" + root.highChild + ":" + root.lowChild;
@@ -513,42 +535,26 @@ public class BDD {
         // check if both child nodes point to the same node
         if (node.lowChild.lowChild == node.lowChild.highChild && node.lowChild.lowChild != null && node.lowChild.highChild != null) {
             // set parent node to child node
-            if (node.lowChild.parent != null ) {
+            if (node.lowChild.parent != null) {
                 //String key = "terms:" + concatTerms(node.lowChild.terms) + ":var:" + (char)node.lowChild.varIndex + ":" + node.lowChild.highChild.toString() + ":" + node.lowChild.lowChild.toString();
-                String key = "terms:" + concatTerms(node.lowChild.terms) + ":" + node.lowChild.highChild + ":" + node.lowChild.lowChild;
+                String key = "terms:" + concatTerms(node.lowChild.terms) + ":" + node.lowChild.highChild.toString() + ":" + node.lowChild.lowChild.toString();
                 node.lowChild.lowChild.parent = node.lowChild.parent;
                 node.lowChild = node.lowChild.lowChild;
                 uniqueTable.remove(key);
-            } else {
-                // node is root, replace it with the low child
-                node.lowChild.lowChild.parent = null;
-                node.lowChild.parent = null;
-                node.lowChild.highChild = null;
-                node.lowChild.terms.clear();
-                node.lowChild.terms.addAll(node.terms);
-                node = node.lowChild;
             }
         }
         if (node.highChild.lowChild == node.highChild.highChild && node.highChild.lowChild != null && node.highChild.highChild != null) {
             // set parent node to child node
             if (node.highChild.parent != null || node.highChild.isTerminal) {
                 //String key = "terms:"+concatTerms(node.highChild.terms) + ":var:" + (char)node.highChild.varIndex + ":" + node.highChild.highChild.toString() + ":" + node.highChild.lowChild.toString();
-                String key = "terms:" +concatTerms(node.highChild.terms) + ":" + node.highChild.highChild + ":" + node.highChild.lowChild;
+                String key = "terms:" + concatTerms(node.highChild.terms) + ":" + node.highChild.highChild.toString() + ":" + node.highChild.lowChild.toString();
                 node.highChild.highChild.parent = node.highChild.parent;
                 node.highChild = node.highChild.highChild;
                 uniqueTable.remove(key);
-
-            } else {
-            // node is root, replace it with the high child
-                node.highChild.highChild.parent = null;
-                node.highChild.parent = null;
-                node.highChild.lowChild = null;
-                node.highChild.terms.clear();
-                node.highChild.terms.addAll(node.terms);
-                node = node.highChild;
             }
         }
     }
+
 
     public static Set<String> getPermutations(Set<Character> variables) {
         Set<String> permutations = new HashSet<>();
@@ -597,6 +603,8 @@ public class BDD {
          for (int i = 0; i < input.length(); i++) {
              inputs[i] = (input.charAt(i) == '1');
          }
+
+         function = rewriteBfunction(function);
 
         // Evaluate function
          for (int i = 0; i < order.length(); i++) {
@@ -671,9 +679,9 @@ public class BDD {
 
 
         for (int i = 0; i < perms.size(); i++){
-            if (evaluateBDD(bdd.getRoot(),bdd.orderOfVariables,perms.get(i)) == true){
+            if (evaluateBfunction(bdd.bfunction, perms.get(i), bdd.orderOfVariables) == true){
                 result = '1';
-            }else if  (evaluateBDD(bdd.getRoot(),bdd.orderOfVariables,perms.get(i)) == false){
+            }else if  (evaluateBfunction(bdd.bfunction, perms.get(i), bdd.orderOfVariables) == false){
                 result = '0';
             }else result = 'E';
 
@@ -692,36 +700,44 @@ public class BDD {
         Random RANDOM = new Random();
         StringBuilder sb = new StringBuilder();
 
-
-        for (int i = 0; i < numVariables; i++) {
-            // randomly decide whether to negate the variable
-            boolean negate = RANDOM.nextBoolean();
-
-            // add the variable (or its negation) to the term
-            if (negate) {
-                sb.append("!");
-            }
-            sb.append((char) ('A' + i));
-        }
-
-
-        int numTerms = RANDOM.nextInt(5,12);
+        int numTerms = RANDOM.nextInt(5,10);
         for (int i = 0; i < numTerms; i++) {
             // Generate a random term of length 1 to numVariables
             int termLength = RANDOM.nextInt(numVariables) + 1;
+
+            // Keep track of variables used in this term
+            Set<Character> variablesUsed = new HashSet<>();
+
+            StringBuilder termBuilder = new StringBuilder();
             for (int j = 0; j < termLength; j++) {
-                boolean negate = RANDOM.nextBoolean();
+                char variable;
+                boolean negate;
+
+                // Generate a variable that hasn't been used in this term
+                do {
+                    negate = RANDOM.nextBoolean();
+                    variable = (char) ('A' + RANDOM.nextInt(numVariables));
+                } while (variablesUsed.contains(variable) ||
+                        (negate && variablesUsed.contains(Character.toLowerCase(variable))) ||
+                        (!negate && variablesUsed.contains(Character.toUpperCase(variable))));
 
                 // add the variable (or its negation) to the term
                 if (negate) {
-                    sb.append("!");
+                    termBuilder.append("!");
                 }
-                char variable = (char) ('A' + RANDOM.nextInt(numVariables));
-                sb.append(variable);
+                termBuilder.append(variable);
+
+                // Add the used variables to the set
+                variablesUsed.add(variable);
+                if (negate) {
+                    variablesUsed.add(Character.toLowerCase(variable));
+                } else {
+                    variablesUsed.add(Character.toUpperCase(variable));
+                }
             }
-            sb.append("+");
+            sb.append(termBuilder.toString()).append("+");
         }
-        // Remove the trailing "+"
+// Remove the trailing "+"
         sb.deleteCharAt(sb.length() - 1);
         return sb.toString();
     }

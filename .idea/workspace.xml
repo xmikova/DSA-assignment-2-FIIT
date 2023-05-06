@@ -4,7 +4,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="11bd2715-833a-48a5-a856-536325c0b68a" name="Changes" comment="BDD_create with reduction rules and boolean algebra laws (WORKING, not fully tested tho)">
+    <list default="true" id="11bd2715-833a-48a5-a856-536325c0b68a" name="Changes" comment="working all three functions without comments">
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/BDD.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/BDD.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Main.java" afterDir="false" />
@@ -84,7 +85,14 @@
       <option name="project" value="LOCAL" />
       <updated>1682468159331</updated>
     </task>
-    <option name="localTasksCounter" value="4" />
+    <task id="LOCAL-00004" summary="working all three functions without comments">
+      <created>1682954156042</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1682954156042</updated>
+    </task>
+    <option name="localTasksCounter" value="5" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -102,7 +110,8 @@
     <MESSAGE value="initial commit" />
     <MESSAGE value="WIP (not really working)" />
     <MESSAGE value="BDD_create with reduction rules and boolean algebra laws (WORKING, not fully tested tho)" />
-    <option name="LAST_COMMIT_MESSAGE" value="BDD_create with reduction rules and boolean algebra laws (WORKING, not fully tested tho)" />
+    <MESSAGE value="working all three functions without comments" />
+    <option name="LAST_COMMIT_MESSAGE" value="working all three functions without comments" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -111,27 +120,12 @@
           <properties class="java.lang.NullPointerException" package="java.lang" />
           <option name="timeStamp" value="10" />
         </breakpoint>
-        <line-breakpoint enabled="true" type="java-method">
-          <url>file://$PROJECT_DIR$/src/BDD.java</url>
-          <line>119</line>
-          <properties class="BDD" method="BDD_create_with_best_order">
-            <option name="EMULATED" value="true" />
-            <option name="WATCH_EXIT" value="false" />
-          </properties>
-          <option name="timeStamp" value="19" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/BDD.java</url>
-          <line>135</line>
-          <option name="timeStamp" value="18" />
-        </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
     <pin-to-top-manager>
       <pinned-members>
         <PinnedItemInfo parentTag="BDD" memberName="root" />
         <PinnedItemInfo parentTag="BDD$BDDNode" memberName="varIndex" />
-        <PinnedItemInfo parentTag="BDD$BDDNode" memberName="terms" />
       </pinned-members>
     </pin-to-top-manager>
   </component>

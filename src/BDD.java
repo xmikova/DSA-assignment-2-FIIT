@@ -1,6 +1,7 @@
 import java.util.*;
 import java.util.stream.Collectors;
 
+//The BDD class.
 public class BDD {
     public BDD() {}
     private BDDNode root;
@@ -19,6 +20,7 @@ public class BDD {
         return size;
     }
 
+    //The BDD node class.
     static class BDDNode {
         public BDDNode parent;
         List<String> terms;
@@ -47,6 +49,7 @@ public class BDD {
         public BDDNode() {
         }
 
+        //A toString() function for BDDNode objects for hashing them into keys.
         @Override
         public String toString() {
             if (this == null){
@@ -74,13 +77,13 @@ public class BDD {
         }
     }
 
-    //Implementation of three compulsory functions BDD_create, BDD_create_with_best_order and BDD_use
+    //Implementation of three compulsory functions BDD_create, BDD_create_with_best_order and BDD_use.
     public static BDD BDD_create(String bfunction, String order) {
-        // Step 2: Parse the bFunction string to obtain a list of the variables
+        //Parse the boolean function string to obtain a list of the variables.
         Set<Character> variables;
         variables = retrieveVariablesFromBfunction(bfunction);
 
-        // Step 3: Parse the variableOrder string to obtain a list of the variables in the order specified by the user
+        //Parse the variableOrder string to obtain a list of the variables in the order specified by the user.
         List<Character> orderVariableList = new ArrayList<>();
         for (char c : order.toCharArray()) {
             if (variables.contains(Character.toUpperCase(c))) {
@@ -88,22 +91,24 @@ public class BDD {
             }
         }
 
+        //Split the function at + sign and store terms into a list.
         String[] termsarray = bfunction.split("\\+");
         List<String> terms = Arrays.asList(termsarray);
 
+        //Modify the terms in a way that negations of variables are replaced with the lower case version of those variables.
         List<String> modifiedTerms = new ArrayList<>();
         for (String term : terms) {
             StringBuilder sb = new StringBuilder(term);
             for (int i = 0; i < sb.length(); i++) {
                 if (sb.charAt(i) == '!') {
-                    sb.deleteCharAt(i); // remove the exclamation mark
-                    sb.insert(i, Character.toLowerCase(sb.charAt(i))); // insert the lowercase letter at the same position
+                    sb.deleteCharAt(i);
+                    sb.insert(i, Character.toLowerCase(sb.charAt(i)));
                     sb.deleteCharAt(i + 1);
                 }
             }
             modifiedTerms.add(sb.toString());
         }
-
+        //Create the two terminal nodes.
         BDDNode trueLeaf = new BDDNode(true, true);
         BDDNode falseLeaf = new BDDNode(true, false);
         BDD bdd = new BDD();
@@ -114,28 +119,31 @@ public class BDD {
         bdd.bfunction = bfunction;
         HashMap<String, BDDNode> uniqueTable = new HashMap<String, BDDNode>();
         root = createBDD_helper(modifiedTerms, orderVariableList, orderVariableList, root, currentNode, trueLeaf, falseLeaf, uniqueTable);
-        bdd.setRoot(root);
+        bdd.setRoot(root); //Set the root to the BDD structure.
         Set<String> visited = new HashSet<>();
         int uniqueNodes = countUniqueNodes(bdd.root, visited);
         bdd.size = uniqueNodes + 2;
         return bdd;
     }
 
-
     public static BDD BDD_create_with_best_order(String bfunction) {
+        //Retrieve the variables from the function and obtain permutations to try.
         Set<Character> variables;
         variables = retrieveVariablesFromBfunction(bfunction);
         Set<String> permutations = getPermutations(variables);
         List<String> permutationsList = new ArrayList<>(permutations);
         List<Integer> nodeCounts = new ArrayList<>();
 
+        //Create BDD for each permutation and store its size into a List.
         for (int i = 0; i < permutationsList.size(); i++){
             BDD bdd = BDD_create(bfunction, permutationsList.get(i));
             nodeCounts.add(bdd.size);
         }
 
+        //Get the minimal node count.
         int minimum = Collections.min(nodeCounts);
 
+        //Return the BDD with this node count.
         for (int j = 0; j < nodeCounts.size(); j++){
             if (nodeCounts.get(j) == minimum){
                 BDD bestBDD = BDD_create(bfunction, permutationsList.get(j));
@@ -146,15 +154,16 @@ public class BDD {
     }
 
     public static char BDD_use(BDD bdd, String input_values){
+        //Check for correct input.
         if (input_values.length() != bdd.numOfVariables || !input_values.matches("[01]+")){
             return 'E'; //error
-        }else{
-        boolean result = evaluateBDD(bdd.getRoot(),bdd.orderOfVariables,input_values);
-        if (result){
-            return '1';
-        }else if (!result){
-            return '0';
-        }
+        }else{ //Evaluate the BDD.
+            boolean result = evaluateBDD(bdd.getRoot(),bdd.orderOfVariables,input_values);
+            if (result){
+                return '1';
+            }else if (!result){
+                return '0';
+            }
         }
         return 'E';
     }
@@ -162,23 +171,21 @@ public class BDD {
 
     //Helper methods:
     public static BDDNode createBDD_helper(List<String> Terms, List<Character> orderedV, List<Character> orderedVstatic, BDDNode rootNode, BDDNode parentNode, BDDNode trueLeaf, BDDNode falseLeaf, HashMap<String, BDDNode> uniqueTable) {
-        if (orderedV.size() == 1) { // check for the last variable in the list
+        if (orderedV.size() == 1) { //Check for the last variable in the list.
             char variable = orderedV.get(0);
             Character lowerV = Character.toLowerCase(variable);
             CharSequence charSeq = new String(new char[]{variable});
             CharSequence charSeqL = new String(new char[]{lowerV});
 
-
-            //String key = "terms:" + concatTerms(Terms) + ":var:" + variable + ":" + trueLeaf.toString() + ":" + falseLeaf.toString();
             String key = "terms:" + concatTerms(Terms) + ":" + trueLeaf.toString() + ":" + falseLeaf.toString();
 
-
-            // Check if a node with the same key already exists in the unique table
+            //Check if a node with the same key already exists in the unique table (reduction type I).
             BDDNode existingNode = uniqueTable.get(key);
             if (existingNode != null) {
                 return existingNode;
             }
 
+            //If not, create a new one and continue in the process.
             BDDNode variableNode = new BDDNode();
             variableNode.varIndex = variable;
             variableNode.terms = Terms;
@@ -258,17 +265,19 @@ public class BDD {
                 parentNode.lowChild = variableNode;
             }
 
+            //Put the node into table and return it.
             uniqueTable.put(key, variableNode);
             return rootNode;
 
         }
 
 
-        // continue with the recursive function if not the last variable
+        //Continue with the recursive function if not the last variable.
         Character variable = orderedV.get(0);
         List<String> trueTerms = new ArrayList<>();
         List<String> falseTerms = new ArrayList<>();
 
+        //Determine the true and false terms of current variable.
         for (String term : Terms) {
             if (term.indexOf(variable) == -1) {
                 if (term.indexOf(Character.toLowerCase(variable)) != -1) {
@@ -285,8 +294,6 @@ public class BDD {
                         cleanedTerm = "1";
                     }
                     falseTerms.add(Associativity(Indempotent(cleanedTerm)));
-                    //falseTerms.add(cleanedTerm);
-
                 } else {
                     String newTerm;
                     newTerm = term.replace(variable, ' ');
@@ -302,10 +309,6 @@ public class BDD {
                     }
                     trueTerms.add(Associativity(Indempotent(cleanedTerm)));
                     falseTerms.add(Associativity(Indempotent(cleanedTerm)));
-                    //trueTerms.add(cleanedTerm);
-                    //falseTerms.add(cleanedTerm);
-
-
                 }
             } else {
                 String newTerm;
@@ -321,30 +324,29 @@ public class BDD {
                     cleanedTerm = "1";
                 }
                 trueTerms.add(Associativity(Indempotent(cleanedTerm)));
-                //trueTerms.add(cleanedTerm);
-
             }
         }
 
+        //Apply Boolean algerba laws to the terms.
         trueTerms = Absorption(InverseLaw(Annulment(Identity(removeDuplicates(trueTerms)))));
-        //trueTerms = removeDuplicates(trueTerms);
         falseTerms = Absorption(InverseLaw(Annulment(Identity(removeDuplicates(falseTerms)))));
-        //falseTerms = removeDuplicates(falseTerms);
+
         BDDNode trueNode;
         BDDNode falseNode;
 
+        //Recursively create high and low children.
         trueNode = createBDD_helper(trueTerms, orderedV.subList(1, orderedV.size()),orderedVstatic, rootNode, parentNode, trueLeaf, falseLeaf, uniqueTable);
         falseNode = createBDD_helper(falseTerms, orderedV.subList(1, orderedV.size()), orderedVstatic, rootNode, parentNode, trueLeaf, falseLeaf, uniqueTable);
 
-
-        //String key = "terms:" + concatTerms(Terms) + ":var:" + variable + ":" + trueNode.toString() + ":" + falseNode.toString();
+        //Obtain the key of current node.
         String key = "terms:" + concatTerms(Terms) + ":" + trueNode.toString() + ":" + falseNode.toString();
 
         BDDNode existingNode = uniqueTable.get(key);
 
+        //If the node already exists, return in (reduction type I).
         if (existingNode != null) {
             return existingNode;
-        } else {
+        } else { //Else create a new node and set its attributes.
             BDDNode variableNode = new BDDNode();
             variableNode.varIndex = variable;
             variableNode.highChild = trueNode;
@@ -353,7 +355,7 @@ public class BDD {
             falseNode.parent = variableNode;
             variableNode.terms = Terms;
             uniqueTable.put(key, variableNode);
-            reduction_typeS(variableNode, uniqueTable);
+            reduction_typeS(variableNode, uniqueTable); //Check if reduction type S is possible to perform on current node.
 
 
             if (parentNode == null) {
@@ -364,11 +366,11 @@ public class BDD {
                 parentNode.lowChild = variableNode;
 
             }
+            //Reduction type S for the root variable
             if (rootNode.varIndex == orderedVstatic.get(0) && rootNode.lowChild.lowChild != null && rootNode.lowChild.highChild != null &&  rootNode.highChild.lowChild != null && rootNode.highChild.highChild != null){
             String rootLowchildkey = "terms:" + concatTerms(rootNode.lowChild.terms) + ":" + rootNode.lowChild.lowChild.toString() + ":" + rootNode.lowChild.highChild.toString();
             String rootHighchildkey = "terms:" + concatTerms(rootNode.highChild.terms) + ":" + rootNode.highChild.lowChild.toString() + ":" + rootNode.highChild.highChild.toString();
                 if (rootLowchildkey.equals(rootHighchildkey)) {
-                    // set parent node to child node
                     if (rootNode.lowChild.parent != null ) {
                         rootNode.lowChild.parent = null;
                         rootNode.lowChild.terms.addAll(rootNode.terms);
@@ -377,11 +379,12 @@ public class BDD {
                     }
                 }
             }
-
+            //Return the node.
             return rootNode;
         }
     }
 
+    //Here come the Boolean algebra laws methods.
     public static List<String> removeDuplicates(List<String> terms) {
         Set<String> uniqueTerms = new HashSet<>();
         List<String> nonDuplicateTerms = new ArrayList<>();
@@ -491,7 +494,7 @@ public class BDD {
         return false;
     }
 
-
+    //Method for putting terms into a single string for a key for a hashtable.
     private static String concatTerms(List<String> terms) {
         if (terms != null){
         Collections.sort(terms);
@@ -499,6 +502,7 @@ public class BDD {
         return null;
     }
 
+    //Method for retrieving the variables from a Boolean function.
     public static Set<Character> retrieveVariablesFromBfunction(String bfunction){
         Set<Character> variables = new HashSet<>();
         for (int i = 0; i < bfunction.length(); i++) {
@@ -510,6 +514,7 @@ public class BDD {
         return variables;
     }
 
+    //Method that traverses the BDD and only count every node once even though it is visited multiple times.
     public static int countUniqueNodes(BDDNode root, Set<String> visited) {
         if (root == null) {
             return 0;
@@ -531,12 +536,10 @@ public class BDD {
         return count;
     }
 
+    //Method that performs a reduction type S on a node checking if its children are equal.
     private static void reduction_typeS(BDDNode node, HashMap<String, BDDNode> uniqueTable) {
-        // check if both child nodes point to the same node
         if (node.lowChild.lowChild == node.lowChild.highChild && node.lowChild.lowChild != null && node.lowChild.highChild != null) {
-            // set parent node to child node
             if (node.lowChild.parent != null) {
-                //String key = "terms:" + concatTerms(node.lowChild.terms) + ":var:" + (char)node.lowChild.varIndex + ":" + node.lowChild.highChild.toString() + ":" + node.lowChild.lowChild.toString();
                 String key = "terms:" + concatTerms(node.lowChild.terms) + ":" + node.lowChild.highChild.toString() + ":" + node.lowChild.lowChild.toString();
                 node.lowChild.lowChild.parent = node.lowChild.parent;
                 node.lowChild = node.lowChild.lowChild;
@@ -544,9 +547,7 @@ public class BDD {
             }
         }
         if (node.highChild.lowChild == node.highChild.highChild && node.highChild.lowChild != null && node.highChild.highChild != null) {
-            // set parent node to child node
             if (node.highChild.parent != null || node.highChild.isTerminal) {
-                //String key = "terms:"+concatTerms(node.highChild.terms) + ":var:" + (char)node.highChild.varIndex + ":" + node.highChild.highChild.toString() + ":" + node.highChild.lowChild.toString();
                 String key = "terms:" + concatTerms(node.highChild.terms) + ":" + node.highChild.highChild.toString() + ":" + node.highChild.lowChild.toString();
                 node.highChild.highChild.parent = node.highChild.parent;
                 node.highChild = node.highChild.highChild;
@@ -555,7 +556,7 @@ public class BDD {
         }
     }
 
-
+    //Method that generates permutations from variables for BDD_create_with_best_order.
     public static Set<String> getPermutations(Set<Character> variables) {
         Set<String> permutations = new HashSet<>();
         List<Character> list = new ArrayList<>(variables);
@@ -570,13 +571,14 @@ public class BDD {
         return permutations;
     }
 
+    //Method that rewrites a Boolean function into a function that can be parsed by Java.
     public static String rewriteBfunction(String function){
         function = function.replace("+", "||");
 
-        String[] terms = function.split("\\|\\|"); // split terms by the || operator
+        String[] terms = function.split("\\|\\|");
         for (int i = 0; i < terms.length; i++) {
-            String term = terms[i].trim(); // remove any leading or trailing whitespace
-            String modifiedTerm = ""; // initialize modified term string
+            String term = terms[i].trim(); //Remove any leading or trailing whitespace.
+            String modifiedTerm = "";
             for (int j = 0; j < term.length(); j++) {
                 char c = term.charAt(j);
                 if (Character.isLetter(c)) {
@@ -589,16 +591,15 @@ public class BDD {
                     modifiedTerm += c;
                 }
             }
-            terms[i] = modifiedTerm; // replace original term with modified term
+            terms[i] = modifiedTerm; //Replace original term with modified term.
         }
-        function = String.join(" || ", terms); // rejoin terms with the || operator
-
-// Output the converted function
+        function = String.join(" || ", terms);
         return function;
-     }
+    }
 
+    //Method that parses the Boolean function and evaluates it for the testing of correctness of the BDD.
      public static Boolean evaluateBfunction (String function, String input, String order){
-         // Convert input string to boolean array
+         //Convert input string to boolean array.
          boolean[] inputs = new boolean[input.length()];
          for (int i = 0; i < input.length(); i++) {
              inputs[i] = (input.charAt(i) == '1');
@@ -606,7 +607,7 @@ public class BDD {
 
          function = rewriteBfunction(function);
 
-        // Evaluate function
+        //Evaluate function.
          for (int i = 0; i < order.length(); i++) {
              char var = order.charAt(i);
              boolean value = inputs[i];
@@ -633,29 +634,31 @@ public class BDD {
          return null;
      }
 
+     //Evaluate BDD using the BDD structure.
      public static boolean evaluateBDD(BDDNode node, String variableOrder, String inputValues){
-         // Base case: if node is a terminal node, return its value
          if (node == null){
              return false;
          }
 
+         //Return the result at the terminal node.
          if (node.isTerminal()) {
             return node.getValue();
         }
 
-         // Get the index of the variable associated with this node
+         //Get the index of the variable associated with this node.
          int varIndex = variableOrder.indexOf(node.getVarIndex());
 
-         // Get the value of the variable from the input string
+         //Get the value of the variable from the input string.
          boolean varValue = inputValues.charAt(varIndex) == '1';
 
-         // Choose the appropriate child based on the variable value
+         //Choose the appropriate child based on the variable value.
          BDDNode child = varValue ? node.getHighChild() : node.getLowChild();
 
-         // Recursively evaluate the child node
+         //Recursively evaluate the child node.
          return evaluateBDD(child, variableOrder, inputValues);
      }
 
+    //Generate all the possible permutations of 0 and 1s for certain amount of variables.
     public static List<String> generatePermutationsForTruthTable(int n) {
         List<String> permutations = new ArrayList<>();
         int numPermutations = (int) Math.pow(2, n);
@@ -671,6 +674,7 @@ public class BDD {
         return permutations;
     }
 
+    //Method for comparing the results from evaluating the function using Java boolean operators and using BDD.
     public static void testCorrectnessOfAllPossibleOutputs(BDD bdd){
         List<String> perms = generatePermutationsForTruthTable(bdd.numOfVariables);
         int allOutputs = perms.size();
@@ -696,16 +700,15 @@ public class BDD {
         System.out.println("Success rate: " + successRate + "%");
     }
 
+    //Method for generating a random function containing certain amount of variables for testing.
     public static String generateRandomFunction(int numVariables) {
         Random RANDOM = new Random();
         StringBuilder sb = new StringBuilder();
 
         int numTerms = RANDOM.nextInt(5,10);
         for (int i = 0; i < numTerms; i++) {
-            // Generate a random term of length 1 to numVariables
             int termLength = RANDOM.nextInt(numVariables) + 1;
 
-            // Keep track of variables used in this term
             Set<Character> variablesUsed = new HashSet<>();
 
             StringBuilder termBuilder = new StringBuilder();
@@ -713,7 +716,6 @@ public class BDD {
                 char variable;
                 boolean negate;
 
-                // Generate a variable that hasn't been used in this term
                 do {
                     negate = RANDOM.nextBoolean();
                     variable = (char) ('A' + RANDOM.nextInt(numVariables));
@@ -721,13 +723,11 @@ public class BDD {
                         (negate && variablesUsed.contains(Character.toLowerCase(variable))) ||
                         (!negate && variablesUsed.contains(Character.toUpperCase(variable))));
 
-                // add the variable (or its negation) to the term
                 if (negate) {
                     termBuilder.append("!");
                 }
                 termBuilder.append(variable);
 
-                // Add the used variables to the set
                 variablesUsed.add(variable);
                 if (negate) {
                     variablesUsed.add(Character.toLowerCase(variable));
@@ -737,18 +737,17 @@ public class BDD {
             }
             sb.append(termBuilder.toString()).append("+");
         }
-// Remove the trailing "+"
-        sb.deleteCharAt(sb.length() - 1);
+        sb.deleteCharAt(sb.length() - 1); //Remove the trailing +.
         return sb.toString();
     }
 
+    //Generate random order for a certain Boolean function for testing.
     public static String generateRandomOrder(String bfunction) {
         Set<Character> variables = retrieveVariablesFromBfunction(bfunction);
-        // Convert the set to a list for easy shuffling
         List<Character> varList = new ArrayList<>(variables);
         int n = varList.size();
 
-        // Shuffle the list using the Fisher-Yates algorithm
+        //Shuffle the list using the Fisher-Yates algorithm.
         Random rand = new Random();
         for (int i = n - 1; i > 0; i--) {
             int j = rand.nextInt(i + 1);
@@ -757,7 +756,6 @@ public class BDD {
             varList.set(j, temp);
         }
 
-        // Convert the shuffled list back to a string
         StringBuilder sb = new StringBuilder(n);
         for (char c : varList) {
             sb.append(c);

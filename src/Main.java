@@ -1,12 +1,44 @@
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Scanner;
 import java.util.Set;
+import java.util.Scanner;
 
 public class Main {
     public static void main(String[] args){
-        BDD bdd = new BDD();
-        bdd = BDD.BDD_create("ABCD+!ABCD","ABCD");
-        testTheBDD("ABCD+!ABCD","ABCD");
+        Scanner obj = new Scanner(System.in);
+
+        System.out.println("The testing of BDD structure:");
+        System.out.println("If you want to test specific function, enter 1.");
+        System.out.println("If you want to test one random function, enter 2.");
+        System.out.println("If you want to test 100 random functions, enter 3.");
+        System.out.println("For a full automated time complexity test, enter 4.");
+        System.out.println("Enter a number: ");
+        int input = obj.nextInt();
+        obj.nextLine();
+
+        switch(input){
+            case 1:
+                System.out.println("Enter a function: ");
+                String function = obj.nextLine();
+                System.out.println("Enter an order of variables: ");
+                String order = obj.nextLine();
+                testTheBDD(function,order);
+                break;
+            case 2:
+                System.out.println("Enter the number of variables for function: ");
+                int vars = obj.nextInt();
+                testTheBDDRandom(vars);
+                break;
+            case 3:
+                System.out.println("Enter the number of variables for function: ");
+                int vars2 = obj.nextInt();
+                testTheBDD100Times(vars2);
+                break;
+            case 4:
+                timeComplexityTest();
+                break;
+        }
     }
 
     public static void testTheBDD(String bfunction, String order){
@@ -52,7 +84,6 @@ public class Main {
     public static void testTheBDDRandom(int numberOfVars){
       String bfunction = BDD.generateRandomFunction(numberOfVars);
       String order = BDD.generateRandomOrder(bfunction);
-      System.out.println(order);
       BDD bdd = new BDD();
       BDD bddBestOrder = new BDD();
 
@@ -113,25 +144,6 @@ public class Main {
                 String bfunction = BDD.generateRandomFunction(numsOfVars.get(i));
                 String order = BDD.generateRandomOrder(bfunction);
                 BDD bdd = BDD.BDD_create(bfunction,order);
-            }
-            long end = System.currentTimeMillis();
-            long total = end - start;
-
-            System.out.println("Time in milliseconds to create 100 random BDDs with " + numsOfVars.get(i) + " variables: " + total);
-        }
-    }
-
-    public static void timeComplexityTestBestBDD(){
-        List<Integer> numsOfVars = new ArrayList<>();
-        for (int i = 13; i <= 20; i++) {
-            numsOfVars.add(i);
-        }
-
-        for (int i = 0; i < numsOfVars.size(); i++){
-            long start = System.currentTimeMillis();
-            for (int j = 0; j < 100; j++){
-                String bfunction = BDD.generateRandomFunction(numsOfVars.get(i));
-                BDD bdd = BDD.BDD_create_with_best_order(bfunction);
             }
             long end = System.currentTimeMillis();
             long total = end - start;
